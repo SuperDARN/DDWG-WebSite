@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SuperDARN Multi-Radar Data Monitoring Platform | NSSC</title>
+  <link href="./static/vendor/fonts/opensans.css" rel="stylesheet">
+  <link rel="stylesheet" href="./static/vendor/fontawesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./static/FullYearPicker/css/datePacker.css">
+  <link rel="stylesheet" href="./static/css/superdarn.css?v=34">
+  <script src="./static/vendor/echarts/5.4.3/echarts.min.js"></script>
+  <script src="./static/vendor/jquery/3.6.4/jquery.min.js"></script>
+  <style>
+    .status-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(245, 248, 255, 0.7);
+    }
+    .status-dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .normal-blink {
+      background: #10b981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+      animation: blink 1.5s infinite alternate;
+    }
+    .offline-blink {
+      background: #ef4444;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+      animation: blink 1.5s infinite alternate;
+    }
+    @keyframes blink {
+      from { opacity: 0.5; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+<div class="modal-mask" id="modalMask">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="fas fa-users"></i>
+        <span id="modalTitle"></span>
+      </div>
+      <button class="modal-close" id="modalClose" type="button">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<header class="page-header">
+  <div class="header-brand">
+    <h1 class="project-title">SuperDARN Data Distribution Working Group</h1>
+  </div>
+  <p class="project-subtitle"></p>
+  <nav class="main-nav">
+    <a href="#overview" class="active" data-page="overview">
+      <i class="fas fa-chart-pie"></i>Home
+    </a>
+    <a href="#syncCalendar" data-page="syncCalendar">
+      <i class="fas fa-calendar-week"></i>Data Calendar
+    </a>
+    <a href="#fileVolume" data-page="fileVolume">
+      <i class="fas fa-chart-bar"></i>Volume & Trends
+    </a>
+    <a href="#rawacfStat" data-page="rawacfStat">
+      <i class="fas fa-chart-area"></i>Data Coverage
+    </a>
+    <a href="#membership" data-page="membership">
+      <i class="fas fa-users"></i>Membership
+    </a>
+    <a href="#charter" data-page="charter">
+      <i class="fas fa-scroll"></i>DDWG Charter
+    </a>
+    <a href="#radarNet" data-page="radarNet">
+      <i class="fas fa-clipboard-list"></i>Meeting Minutes
+    </a>
+    <a href="#blocklist" data-page="blocklist">
+      <i class="fas fa-ban"></i>Blocklist
+    </a>
+  </nav>
+</header>
+
+<div class="container">
+  <div class="kpi-wrap show" id="kpiWrap">
+    <div class="kpi-grid">
+      <div class="stat-card">
+        <h3><i class="fa-solid fa-satellite-dish"></i>BAS</h3>
+        <p class="stat-value" id="kpiRadars">Data Volume : 667GB   &nbsp;&nbsp;&nbsp;&nbsp;File Count : 43452</p>
+        <p class="stat-desc">Update Date : 2025-11-23 16:45:23</p>
+      </div>
+      <div class="stat-card">
+        <h3><i class="fa-solid fa-satellite-dish"></i>NSSC</h3>
+        <p class="stat-value" id="kpiFiles">Data Volume : 452GB    &nbsp;&nbsp;&nbsp;&nbsp;File Count : 56785</p>
+        <p class="stat-desc">Update Date : 2027-06-30 14:10:49</p>
+      </div>
+      <div class="stat-card">
+        <h3><i class="fa-solid fa-satellite-dish"></i>USASK</h3>
+        <p class="stat-value" id="kpiSyncRate">Data Volume : 47TB    &nbsp;&nbsp;&nbsp;&nbsp;File Count : 45643</p>
+        <p class="stat-desc">Update Date : 2026-07-24 09:30:09</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="ticker-wrap show" id="tickerWrap">
+    <div class="ticker-badge"><i class="fas fa-broadcast-tower"></i> Radar Statistics</div>
+    <div class="ticker-viewport" id="tickerViewport">
+      <ul class="ticker-list" id="tickerList">
+        <li class="ticker-item"><span class="ticker-loading"><i class="fas fa-spinner fa-spin"></i> Loading radar data...</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+    <div class="content-panel active" id="overview">
+      <div class="dds-hero">
+        <div class="dds-hero-text">
+          <h2 class="dds-hero-title"><i class="fas fa-project-diagram"></i>Data Distribution System</h2>
+          <p class="dds-hero-subtitle">SuperDARN global radar data acquisition, validation &amp; distribution pipeline</p>
+        </div>
+      </div>
+      <div class="dds-stats" style="margin: 10px;">
+        <div class="dds-stat-card">
+          <div class="dds-stat-icon" style="background:rgba(139,92,246,0.1);color:#8B5CF6;">
+            <i class="fas fa-broadcast-tower"></i>
+          </div>
+          <div class="dds-stat-body">
+            <span class="dds-stat-value">39</span>
+            <span class="dds-stat-label">Radar Stations</span>
+          </div>
+        </div>
+        <div class="dds-stat-card">
+          <div class="dds-stat-icon" style="background:rgba(16,185,129,0.1);color:#10B981;">
+            <i class="fas fa-server"></i>
+          </div>
+          <div class="dds-stat-body">
+            <span class="dds-stat-value">4</span>
+            <span class="dds-stat-label">Staging Areas</span>
+          </div>
+        </div>
+        <div class="dds-stat-card">
+          <div class="dds-stat-icon" style="background:rgba(239,68,68,0.1);color:#EF4444;">
+            <i class="fas fa-globe"></i>
+          </div>
+          <div class="dds-stat-body">
+            <span class="dds-stat-value">3</span>
+            <span class="dds-stat-label">Mirror Servers</span>
+          </div>
+        </div>
+      </div>
+      <div class="dds-diagram-card" style="margin: 10px;">
+        <div class="dds-diagram-header">
+          <h3><i class="fas fa-sitemap"></i>System Architecture</h3>
+          <div class="dds-legend">
+            <span class="dds-legend-item"><span class="dds-legend-dot" style="background:#8B5CF6;"></span>Radar</span>
+            <span class="dds-legend-item"><span class="dds-legend-dot" style="background:#10B981;"></span>Staging Area</span>
+            <span class="dds-legend-item"><span class="dds-legend-dot" style="background:#EF4444;"></span>Mirror Server</span>
+          </div>
+        </div>
+        <div class="dds-image-wrap">
+          <img src="./static/images/wg-structure.png" alt="Data Distribution System" class="dds-image" />
+        </div>
+      </div>
+    </div>
+
+    <div class="content-panel" id="syncCalendar">
+      <h3><i class="fas fa-calendar-day"></i>Global Radar Data Sync Calendar</h3>
+      <div class="sync-layout">
+        <aside class="sync-left">
+          <div class="radar-list-panel">
+            <div class="radar-list-title"><i class="fas fa-broadcast-tower"></i> Radar Stations</div>
+            <ul class="radar-station-list" id="radarStationList"></ul>
+          </div>
+        </aside>
+        <div class="sync-right">
+          <div class="radar-info-card">
+            <div class="info-title"><i class="fas fa-satellite"></i>Radar Basic Information</div>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="info-label"><i class="fas fa-hashtag"></i>Station Code</span>
+                <span class="info-value" id="infoCode">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label"><i class="fas fa-calendar-alt"></i>Start Year</span>
+                <span class="info-value" id="startyearid">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label"><i class="fas fa-globe"></i>Hemisphere</span>
+                <span class="info-value" id="infoArea">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label"><i class="fas fa-user-tie"></i>PI Name</span>
+                <span class="info-value text-ellipsis" id="pinameid">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label"><i class="fas fa-building"></i>Affiliated Unit</span>
+                <span class="info-value text-ellipsis" id="radarunitid">-</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label"><i class="fas fa-clock"></i>Last Update Time</span>
+                <span class="info-value" id="laseupdatetimeid">-</span>
+              </div>
+            </div>
+          </div>
+          <div class="sync-calendar-panel">
+            <div class="sync-calendar-toolbar">
+              <div class="sync-calendar-toolbar-left">
+                <label for="radarYearSelect"><i class="fas fa-calendar-alt"></i> Year</label>
+                <select class="filter-select sync-year-select" id="radarYearSelect"></select>
+              </div>
+              <div class="sync-calendar-legend">
+                <span class="legend-item"><span class="legend-dot legend-synced"></span>Available</span>
+                <span class="legend-item"><span class="legend-dot legend-empty"></span>No Data</span>
+              </div>
+            </div>
+            <p class="sync-calendar-subtitle" id="syncCalendarTitle">Loading calendar...</p>
+            <div id="syncCalendarChart" class="sync-calendar-chart sync-calendar-picker"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-panel" id="fileVolume">
+      <h3><i class="fas fa-chart-bar"></i>File Volume</h3>
+      <div class="chart-stack data-stat-stack">
+        <div class="data-stat-card chart-block">
+          <div class="data-stat-card-head">
+            <p class="chart-block-title"><i class="fas fa-chart-line"></i>Yearly Total Data Volume Trend</p>
+            <p class="data-stat-desc">Historical RAWACF data volume by year with linear-regression forecast for the next year</p>
+          </div>
+          <div id="yearVolumeTrendChart" class="chart-box data-stat-chart data-stat-trend-chart"></div>
+        </div>
+        <div class="data-stat-card chart-block">
+          <div class="data-stat-card-head">
+            <p class="chart-block-title"><i class="fas fa-chart-area"></i>Total Data Volume Trend</p>
+            <p class="data-stat-desc">Cumulative RAWACF data volume over years with forecast for the next year</p>
+          </div>
+          <div id="cumulativeVolumeTrendChart" class="chart-box data-stat-chart data-stat-trend-chart"></div>
+        </div>
+        <div class="data-stat-card chart-block">
+          <div class="data-stat-card-head">
+            <p class="chart-block-title"><i class="fas fa-chart-line"></i>Total File Volume & Quantity By Radar</p>
+            <p class="data-stat-desc">Total data volume (GB) and file count ranked by radar station</p>
+          </div>
+          <div id="timeHorizontalBar" class="chart-box data-stat-chart data-stat-mix-chart"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-panel" id="rawacfStat">
+      <h3><i class="fas fa-chart-area"></i>RAWACF Data Statistics</h3>
+      <div class="chart-stack data-stat-stack">
+        <div class="data-stat-card chart-block">
+          <div class="data-stat-card-head">
+            <p class="chart-block-title"><i class="fas fa-chart-bar"></i>Continuous RAWACF Data Statistics By Radar</p>
+            <p class="data-stat-desc" id="rawacfGanttDesc">Continuous RAWACF release coverage per radar station on the timeline</p>
+          </div>
+          <div class="rawacf-gantt-toolbar" id="rawacfGanttToolbar">
+            <div class="rawacf-view-toggle">
+              <button type="button" class="rawacf-view-btn active" data-view="allYears">Overview</button>
+              <button type="button" class="rawacf-view-btn" data-view="byYear">By Year</button>
+            </div>
+            <div class="rawacf-year-picker" id="rawacfYearPicker" style="display:none;">
+              <label for="rawacfYearSelect"><i class="fas fa-calendar-alt"></i> Year</label>
+              <select class="filter-select rawacf-year-select" id="rawacfYearSelect"></select>
+            </div>
+            <div class="rawacf-gantt-legend">
+              <span class="legend-item"><span class="legend-dot legend-has-data"></span>Available</span>
+              <span class="legend-item"><span class="legend-dot legend-no-data"></span>No Data</span>
+            </div>
+          </div>
+          <div id="fileBarChart" class="chart-box data-stat-chart data-stat-gantt-chart">
+            <div id="fileBarChartLoading" class="gantt-loading">
+              <i class="fas fa-spinner fa-spin gantt-loading-icon"></i>
+              <span class="gantt-loading-text">Loading timeline data...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-panel" id="membership">
+      <h3><i class="fas fa-users"></i>Membership</h3>
+      <div class="membership-wrap" id="membershipWrap">
+        <p class="membership-loading"><i class="fas fa-spinner fa-spin"></i> Loading membership data...</p>
+      </div>
+    </div>
+
+    <div class="content-panel" id="charter">
+      <h3><i class="fas fa-scroll"></i>DDWG Charter</h3>
+      <div class="charter-toolbar">
+        <span class="charter-meta" id="charterTabLastUpdate"><i class="far fa-calendar-alt"></i> Loading...</span>
+        <a class="charter-full-link" id="charterTabGithubLink" href="https://github.com/SuperDARN/DDWG/blob/main/charter.md" target="_blank" rel="noopener"></a>
+      </div>
+      <div id="charterTabBoard" class="charter-board">
+        <p class="charter-loading-text"><i class="fas fa-spinner fa-spin"></i> Loading charter...</p>
+      </div>
+    </div>
+
+    <div class="content-panel" id="radarNet">
+      <h3><i class="fas fa-clipboard-list"></i>Meeting Minutes</h3>
+      <ul class="common-list" id="meetingList"></ul>
+    </div>
+
+    <div class="content-panel" id="blocklist">
+      <div class="blocklist-toolbar">
+        <h3><i class="fas fa-ban"></i>Blocklist</h3>
+        <button type="button" class="blocklist-sync-btn" id="blocklistSyncBtn" style="display: none;"><i class="fas fa-sync-alt"></i> Sync Now</button>
+      </div>
+      <div class="blocklist-meta-bar" id="blocklistMeta"></div>
+      <div class="blocklist-body" id="blocklistContent"></div>
+    </div>
+
+    <div class="content-panel" id="news">
+      <h3><i class="fas fa-newspaper"></i>Platform and O&amp;M Dynamics</h3>
+      <ul class="common-list" id="newsList"></ul>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <span class="footer-brand">
+    <i class="fas fa-landmark"></i>SuperDARN DDWG Data Monitoring Platform
+  </span>
+  <span>
+    <i class="fas fa-handshake"></i>Technical Support: National Space Science Center, Chinese Academy of Sciences
+  </span>
+</footer>
+
+<script src="./config.js"></script>
+<script src="./static/FullYearPicker/js/fullYearPicker.js?v=4"></script>
+<script src="./static/js/portal/common.js?v=7"></script>
+<script src="./static/js/portal/tab-overview.js?v=11"></script>
+<script src="./static/js/portal/tab-sync-calendar.js?v=11"></script>
+<script src="./static/js/portal/tab-file-volume.js?v=2"></script>
+<script src="./static/js/portal/tab-rawacf-stat.js?v=18"></script>
+<script src="./static/js/portal/tab-membership.js?v=1"></script>
+<script src="./static/js/portal/tab-charter.js?v=6"></script>
+<script src="./static/js/portal/tab-meeting.js?v=6"></script>
+<script src="./static/js/portal/tab-blocklist.js?v=7"></script>
+<script src="./static/js/portal/tab-news.js?v=4"></script>
+<script src="./static/js/portal/main.js?v=5"></script>
+</body>
+</html>
